@@ -1,12 +1,22 @@
 #![feature(receiver_trait)]
 #![feature(concat_idents)]
 
-use cpppin::{AsCppRef, CppPin};
+use cpppin::{AsCppRef, CppPin, Ref};
 use generated::{OtherCppClass, SomeCppClass};
 
 #[macro_use]
 mod cpppin;
 mod generated;
+
+/// Here's a struct which may be used by Rust or by C++.
+/// If it's used by C++, it must be imprisoned in a CppPin, such that
+/// there are guaranteed to be no Rust references.
+struct MayBeUsedByCppOrByRust(u32);
+
+impl MayBeUsedByCppOrByRust {
+    /// This method can accept either &Self or CppRef<Self>
+    fn some_method(self: impl Ref<Target = Self>) {}
+}
 
 fn main() {
     // Obtain a SomeCppClass somehow, by value. This is kept in a CppPin
@@ -39,4 +49,14 @@ fn main() {
     let some_other_cpp_class_by_value: CppPin<OtherCppClass> = some_cpp_class_ref.get_by_value();
     let yet_another_val: i32 = some_other_cpp_class_by_value.other_primitive_method();
     let yet_another_val2: i32 = some_cpp_class.get_by_reference().other_primitive_method();
+
+    // Now we'll experiment with a type which may be kept either in the Rust
+    // domain (with &T, &mut T etc.) or in the C++ domain (with CppRef<T>).
+    let rust_thingy = MayBeUsedByCppOrByRust(1);
+    let cpp_thingy = CppPin::new(MayBeUsedByCppOrByRust(2));
+    // The same method can be called on either, like this.
+    // Annoyingly it seems the autoreffing doesn't work
+    // so we have to explicitly take a reference:
+    (&rust_thingy).some_method();
+    cpp_thingy.as_cpp_ref().some_method();
 }
