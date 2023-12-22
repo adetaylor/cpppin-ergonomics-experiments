@@ -79,12 +79,20 @@ macro_rules! cpp_field {
 /// A reference of some kind - whether a Rust reference or a C++ reference
 pub trait Ref: core::ops::Receiver<Target = <Self as Ref>::Target> {
     type Target: ?Sized;
+    fn as_ptr(&self) -> *const <Self as Ref>::Target;
 }
 
 impl<T: ?Sized> Ref for CppRef<T> {
     type Target = T;
+    fn as_ptr(&self) -> *const <Self as Ref>::Target {
+        self.0
+    }
 }
 
 impl<T: ?Sized> Ref for &T {
     type Target = T;
+
+    fn as_ptr(&self) -> *const <Self as Ref>::Target {
+        *self as *const <Self as Ref>::Target
+    }
 }

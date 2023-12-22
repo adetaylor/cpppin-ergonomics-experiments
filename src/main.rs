@@ -1,7 +1,7 @@
 #![feature(receiver_trait)]
 #![feature(concat_idents)]
 
-use cpppin::{AsCppRef, CppPin, Ref};
+use cpppin::{AsCppRef, CppPin, CppRef, Ref};
 use generated::{OtherCppClass, SomeCppClass};
 
 #[macro_use]
@@ -15,7 +15,19 @@ struct MayBeUsedByCppOrByRust(u32);
 
 impl MayBeUsedByCppOrByRust {
     /// This method can accept either &Self or CppRef<Self>
-    fn some_method(self: impl Ref<Target = Self>) {}
+    fn some_method(self: impl Ref<Target = Self>) -> u32 {
+        // Of course, given that `self` is an `impl Ref` it's
+        // hard to do anything with it.
+        // We could imagine abstractions which could do things
+        // like the following...
+        //   get_field_from_ref!(self, 0)
+        // which would work for either kind of reference by
+        // using the underlying raw pointer,
+        unimplemented!()
+    }
+
+    fn some_method_only_callable_when_object_in_rust_domain(&self) {}
+    fn some_method_only_callable_when_object_in_cpp_domain(self: CppRef<Self>) {}
 }
 
 fn main() {
