@@ -1,4 +1,4 @@
-use crate::cpppin::{AsCppRef, CppPin, CppRef, CppType};
+use crate::cpppin::{AsCppRef, CppPin, CppRef};
 
 /// Generated from:
 /// ```cpp
@@ -23,8 +23,6 @@ pub struct SomeCppClass {
     // In practice would have size and alignment to match C++ so we can
     // keep this on the stack
 }
-
-impl CppType for SomeCppClass {}
 
 impl SomeCppClass {
     pub fn new() -> CppPin<Self> {
@@ -56,8 +54,6 @@ pub struct OtherCppClass {
     // In practice would have size and alignment to match C++ so we can
     // keep this on the stack
 }
-
-impl CppType for OtherCppClass {}
 
 impl OtherCppClass {
     pub fn other_primitive_method(self: impl AsCppRef<CppTarget = Self>) -> i32 {

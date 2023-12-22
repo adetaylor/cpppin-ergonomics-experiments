@@ -1,48 +1,44 @@
 use core::ops::Receiver;
 
-/// Marker trait for anything which is a C++ type
-pub trait CppType {}
-
 /// Any C++ type which is "plain old data"/"trivial"
-pub trait CppTrivial: CppType {}
+pub trait CppTrivial {}
 
-impl CppType for i32 {}
 impl CppTrivial for i32 {}
 
 /// Anything which is, or can be converted to, a C++ reference
 pub trait AsCppRef: core::ops::Receiver<Target = <Self as AsCppRef>::CppTarget> {
-    type CppTarget: ?Sized + CppType;
+    type CppTarget: ?Sized;
     fn as_cpp_ref(&self) -> CppRef<Self::CppTarget>;
 }
 
-pub struct CppPin<T: ?Sized + CppType>(T);
+pub struct CppPin<T: ?Sized>(T);
 
-impl<T: ?Sized + CppType> AsCppRef for CppPin<T> {
+impl<T: ?Sized> AsCppRef for CppPin<T> {
     type CppTarget = T;
     fn as_cpp_ref(&self) -> CppRef<T> {
         unimplemented!()
     }
 }
 
-impl<T: ?Sized + CppType> Receiver for CppPin<T> {
+impl<T: ?Sized> Receiver for CppPin<T> {
     type Target = T;
 }
 
-pub struct CppRef<T: ?Sized + CppType>(*const T);
+pub struct CppRef<T: ?Sized>(*const T);
 
-impl<T: ?Sized + CppType> Clone for CppRef<T> {
+impl<T: ?Sized> Clone for CppRef<T> {
     fn clone(&self) -> Self {
         Self(self.0.clone())
     }
 }
 
-impl<T: ?Sized + CppType> Copy for CppRef<T> {}
+impl<T: ?Sized> Copy for CppRef<T> {}
 
-impl<T: ?Sized + CppType> Receiver for CppRef<T> {
+impl<T: ?Sized> Receiver for CppRef<T> {
     type Target = T;
 }
 
-impl<T: ?Sized + CppType> AsCppRef for CppRef<T> {
+impl<T: ?Sized> AsCppRef for CppRef<T> {
     type CppTarget = T;
     fn as_cpp_ref(&self) -> CppRef<T> {
         self.clone()
